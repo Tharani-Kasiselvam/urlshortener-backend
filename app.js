@@ -1,6 +1,7 @@
 const morgan = require('morgan')
 const cors = require('cors')
 const express = require('express')
+const registerRoutes = require('./routes/registerRoutes')
 
 const app = express()
 
@@ -16,6 +17,7 @@ app.use(express.json())
 app.use(morgan('dev'))
 
 //define endpoints
+app.use('/', registerRoutes);
 
 
 app.get('/',(req,res)=>{

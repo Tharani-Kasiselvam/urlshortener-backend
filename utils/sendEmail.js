@@ -19,7 +19,7 @@ const sendEmail = async (user_name, email, subject, link) => {
             to: email,
             subject: subject,
             html: `<h2>Hi ${user_name},</h2> 
-            <br> Kindly click on below link to Activate your Account. 
+            <br> Kindly click on below link to Reset your Password. 
             <br> ${link}
             <br>
             <br>Thanks,

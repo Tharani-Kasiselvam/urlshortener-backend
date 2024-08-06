@@ -4,9 +4,8 @@ const Tokengen = require('../models/tokengen');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto')
 
-const config = require('../utils/config');
 const sendEmail = require('../utils/sendEmail')
-
+require('dotenv').config()
 
 // define the user controller
 const userController = {
@@ -25,7 +24,7 @@ const userController = {
             }
 
             // hash the password
-            const passwordHash = await bcrypt.hash(password, 10);
+            const passwordHash = await bcrypt.hash(password, 5);
 
             // if the username does not exist, create a new user
             const newUser = new Users({
@@ -45,7 +44,7 @@ const userController = {
             
                     let user_name = user.firstname
                     let userId = user._id.toString()
-                    let tokenStr = crypto.randomBytes(32).toString("hex")
+                    let tokenStr = crypto.randomBytes(5).toString("hex")
             
                     if (!token) {
                         token =  new Tokengen({

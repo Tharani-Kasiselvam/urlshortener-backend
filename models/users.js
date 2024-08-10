@@ -9,7 +9,8 @@ const usersSchema = new mongoose.Schema(
         is_active : {
             type : String,
             default : "I"
-        }
+        },
+        short_url : String
     },
     {
         collection : 'Users',

@@ -12,7 +12,7 @@ const pwdresetController = {
         try{
             const {email} = req.body
             const user_data = await users.findOne({ "email": email })
-            console.log("#insdde create Token")
+            console.log("#insdde create Token",email)
         if (!user_data)
             return res.status(400).send({error:"user with given Email doesn't exist"});
 

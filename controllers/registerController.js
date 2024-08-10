@@ -1,5 +1,6 @@
 const Users = require('../models/users');
 const Tokengen = require('../models/tokengen');
+const Url = require('../models/url')
 
 const bcrypt = require('bcrypt');
 const crypto = require('crypto')
@@ -7,8 +8,9 @@ const crypto = require('crypto')
 const sendEmail = require('../utils/sendEmail')
 require('dotenv').config()
 
+
 // define the user controller
-const userController = {
+const registerController = {
     // define the register method
     register: async (req, res) => {
         try {
@@ -31,90 +33,89 @@ const userController = {
                 firstname,
                 lastname,
                 email,
-                password : passwordHash
+                password: passwordHash
             });
 
             // save the user in the database
             await newUser.save()
                 .then(async () => {
-                    const user = await Users.findOne({"email" : email});
+                    console.log("User Saved")
+                    const user = await Users.findOne({ "email": email });
 
-                    let token = await Tokengen.findOne({ "userId" : user._id.toString()});
-                    console.log(token)
-            
+                    let token = await Tokengen.findOne({ "userId": user._id.toString() });
+                    console.log("Token:", token)
+
                     let user_name = user.firstname
                     let userId = user._id.toString()
                     let tokenStr = crypto.randomBytes(5).toString("hex")
-            
+
                     if (!token) {
-                        token =  new Tokengen({
+                        token = new Tokengen({
                             userId,
                             tokenStr
                         })
                         await token.save()
+                        console.log("Token saved")
                         const BASE_URL = process.env.BASE_URL
                         const link = `${BASE_URL}/activateAccount/${userId}/${token.tokenStr}`
-            
-                        console.log("LINK:",link)
-            
+
                         await sendEmail(user_name, email, "Account Activation-Sending Email using Node.js", link)
-                        
-                        // res.status(200).send({message:"Account Activation link sent to your Email account"})
+
                     }
                     else
-                        res.status(400).send({error:"Account Activation link already sent to your Email account"})
+                        res.status(400).send({ error: "Account Activation link already sent to your Email account" })
                 })
 
             // return a success message and the saved user
-            res.json({ message: 'Account Activation link sent to your Email account'});
+            res.json({ message: 'Account Activation link sent to your Email account' });
         } catch (error) {
             res.status(500).json({ message: error.message });
         }
     },
 
-    activateAccount : async(req, res) => {
-        try{
+    activateAccount: async (req, res) => {
+        try {
             const userId = req.params.userId
             const tokenStr = req.params.tokenStr
 
-            console.log("USERID:",userId)
+            console.log("USERID:", userId)
 
-            const user = await Users.findOne({"_id" : userId.toString()});
-            console.log("user:",user)
+            const user = await Users.findOne({ "_id": userId.toString() });
+            console.log("user:", user)
 
-            if(user!=null && user.is_active=="I"){
-            console.log("#inside if above token validatn")
-            
-            const token = await Tokengen.findOne({
-                userId : userId,
-                tokenStr : tokenStr
-            })
-            console.log("#Token_Data:",token)
+            if (user != null && user.is_active == "I") {
+                console.log("#inside if above token validatn")
+
+                const token = await Tokengen.findOne({
+                    userId: userId,
+                    tokenStr: tokenStr
+                })
+                console.log("#Token_Data:", token)
 
                 if (!token) {
                     await user.deleteOne()
-                    return res.status(400).json({error:"Activation Token expired, kindly Register"});
-                }else{
+                    return res.status(400).json({ error: "Activation Token expired, kindly Register" });
+                } else {
                     user.is_active = "A"
                     await user.save()
-                    .then(async ()=>{
-                        await token.deleteOne()
-                    }).catch(error => {
-                        console.log("#error within token:",error)
-                    })
-                    res.json({message:"Account Activated sucessfully"})
+                        .then(async () => {
+                            await token.deleteOne()
+                        }).catch(error => {
+                            console.log("#error within token:", error)
+                        })
+                    res.json({ message: "Account Activated sucessfully" })
                 }
-        }else if(user.is_active=="A")   
-            return res.status(400).json({error:"User already ACTIVATED, kindly Login"});
-        
-        else
-            return res.status(400).json({error:"Invalid User, kindly Register"});
+            } else if (user.is_active == "A")
+                return res.status(400).json({ error: "User already ACTIVATED, kindly Login" });
 
-        }catch(error){
-            res.status(400).send({error:"Error while verifying the User/Activation Token, kindly enter valid details"});
-           }
+            else
+                return res.status(400).json({ error: "Invalid User, kindly Register" });
+
+        } catch (error) {
+            res.status(400).send({ error: "Error while verifying the User/Activation Token, kindly enter valid details" });
+        }
     }
-} 
+}
 
 // Export the controller
-module.exports = userController;
+module.exports = registerController;
